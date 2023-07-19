@@ -1,19 +1,33 @@
-import React, { useState, useEffect } from "react";
-import { getNews } from "../../api/getNews";
+import React, { useState, useEffect } from 'react';
+import { getNews } from '../../api/getNews';
 import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
-import ErrorNotification from "../../component/errorNotification/ErrorNotification";
-import NewsCard from "../../newsCard/NewsCard";
-import DropdownComponent from "../../component/dropdown/Dropdown";
+import ErrorNotification from '../../component/errorNotification/ErrorNotification';
+import NewsCard from '../../newsCard/NewsCard';
+import * as PropTypes from "prop-types";
+import { getHeadlines } from '../../api/getHeadlines';
 
+function CardDeck(props) {
+    return null;
+}
 
+CardDeck.propTypes = {children: PropTypes.node};
 const HomePage = () => {
-    const [articles, setArticles] = useState([]);
+    const [news, setNews] = useState({});
     const [error, setError] = useState(null);
     const [selectedCountry, setSelectedCountry] = useState('us');
-    const [selectedCategory, setSelectedCategory] = useState('general');
+    const [headlines, setHeadlines] = useState([]);
 
+    const categories = [
+        { label: 'Business', value: 'business' },
+        { label: 'Entertainment', value: 'entertainment' },
+        { label: 'General', value: 'general' },
+        { label: 'Health', value: 'health' },
+        { label: 'Science', value: 'science' },
+        { label: 'Sports', value: 'sports' },
+        { label: 'Technology', value: 'technology' },
+    ];
     const countries = [
         { label: 'United Arab Emirates', value: 'ae' },
         { label: 'Argentina', value: 'ar' },
@@ -70,50 +84,65 @@ const HomePage = () => {
         { label: 'Venezuela', value: 've' },
         { label: 'South Africa', value: 'za' }
     ];
-    const categories = [
-        { label: 'Business', value: 'business' },
-        { label: 'Entertainment', value: 'entertainment' },
-        { label: 'General', value: 'general' },
-        { label: 'Health', value: 'health' },
-        { label: 'Science', value: 'science' },
-        { label: 'Sports', value: 'sports' },
-        { label: 'Technology', value: 'technology' },
-    ];
+
 
     useEffect(() => {
         const fetchNews = async () => {
             try {
-                const newsArticles = await getNews(selectedCountry, selectedCategory);
-                setArticles(newsArticles);
+                const allNews = {};
+                for (const category of categories) {
+                    const newsArticles = await getNews(selectedCountry, category.value);
+                    allNews[category.value] = newsArticles;
+                }
+                setNews(allNews);
             } catch (error) {
                 setError(error);
             }
         };
         fetchNews();
-    }, [selectedCountry, selectedCategory]);
+    }, [selectedCountry]);
+
+    useEffect(() => {
+        const fetchHeadlines = async () => {
+            try {
+                const newsHeadlines = await getHeadlines(selectedCountry);
+                setHeadlines(newsHeadlines);
+            } catch (error) {
+                setError(error);
+            }
+        };
+        fetchHeadlines();
+    }, [selectedCountry]);
 
     return (
         <Container>
-            <DropdownComponent
-                title="Select Country"
-                items={countries}
-                onSelect={setSelectedCountry}
-            />
-            <DropdownComponent
-                title="Select Category"
-                items={categories}
-                onSelect={setSelectedCategory}
-            />
             <Row>
-                {error ? (
-                    <ErrorNotification message={error.message} />
-                ) : (
-                    articles.map((article, index) => (
-                        <Col xs={12} md={6} lg={4} key={index}>
-                            <NewsCard article={article} />
-                        </Col>
-                    ))
-                )}
+                <Col md={6}>
+                    {categories.map((category) => (
+                        <Row className="mb-4" key={category.value}>
+                            <h2>{category.label}</h2>
+                            <Row>
+                                {news[category.value]?.map((article, index) => (
+                                    <Col md={4} key={index}>
+                                        <NewsCard article={article} />
+                                    </Col>
+                                ))}
+                            </Row>
+                            {error && <ErrorNotification message={error.message} />}
+                        </Row>
+                    ))}
+                </Col>
+                <Col md={6}>
+                    <h2>Top Headlines</h2>
+                    <Row>
+                        {headlines.map((article, index) => (
+                            <Col md={4} key={index}>
+                                <NewsCard article={article} />
+                            </Col>
+                        ))}
+                    </Row>
+                    {error && <ErrorNotification message={error.message} />}
+                </Col>
             </Row>
         </Container>
     );
