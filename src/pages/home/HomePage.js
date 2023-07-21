@@ -7,6 +7,8 @@ import ErrorNotification from '../../component/errorNotification/ErrorNotificati
 import NewsCard from '../../newsCard/NewsCard';
 import * as PropTypes from "prop-types";
 import { getHeadlines } from '../../api/getHeadlines';
+import NewsHeadlines from "../../component/headLines/NewsHeadlines";
+import HeadlinesCard from "../../headlinesCard/HeadlinesCard";
 
 function CardDeck(props) {
     return null;
@@ -117,27 +119,28 @@ const HomePage = () => {
     return (
         <Container>
             <Row>
-                <Col md={6}>
+                <Col md={9}>
                     {categories.map((category) => (
-                        <Row className="mb-4" key={category.value}>
+                        <>
                             <h2>{category.label}</h2>
                             <Row>
                                 {news[category.value]?.map((article, index) => (
-                                    <Col md={4} key={index}>
+                                    <Col xs={12} sm={6} md={4} lg={3}>
                                         <NewsCard article={article} />
                                     </Col>
+
                                 ))}
                             </Row>
                             {error && <ErrorNotification message={error.message} />}
-                        </Row>
+                        </>
                     ))}
                 </Col>
-                <Col md={6}>
+                <Col md={3}>
                     <h2>Top Headlines</h2>
                     <Row>
                         {headlines.map((article, index) => (
-                            <Col md={4} key={index}>
-                                <NewsCard article={article} />
+                            <Col xs={12} >
+                                <HeadlinesCard article={article} />
                             </Col>
                         ))}
                     </Row>
